@@ -1,0 +1,171 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Trustack Execution API",
+    "version": "1.0.0",
+    "description": "A service interface for interacting with Trustack Execution Nodes and for managing Trustack Procedures.",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "paths": {
+    "/procedures": {
+      "summary": "Bulk operations with Trustack Procedures",
+      "get": {
+        "summary": "Retrieve a list of available Trustack Procedures",
+        "description": "Query an execution node for the Trustack Procedures available to the mesh and to the entity making the request.",
+        "operationId": "procedure_list",
+        "responses": {
+          "200": {
+            "description": "Successful request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcedureList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error has occurred",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/procedures/{procedureHash}": {
+      "summary": "Perform operations on a specific Trustack Procedure",
+      "parameters": [
+        {
+          "name": "procedureHash",
+          "in": "path",
+          "description": "The ipfs hash of the Trustack Procedure",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Sync a procedure with Trustack Execution Nodes",
+        "description": "Request that Trustack Execution Nodes sync the Procedure at this ipfs address",
+        "operationId": "procedure_sync",
+        "responses": {
+          "200": {
+            "description": "Successful request, the procedure was already available"
+          },
+          "201": {
+            "description": "Successful request, the procedure was not available, but is now"
+          },
+          "default": {
+            "description": "An unexpected error has occurred"
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute a Trustack Procedure",
+        "description": "Provide an execution node with a Procedure hash and request that the Procedure be executed with the input values made available through the request body.",
+        "operationId": "procedure_exec",
+        "requestBody": {
+          "description": "Procedure input values",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcedureInput"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "description": "Successful request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcedureOutput"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error has occurred"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Request that a Trustack Procedure be forgotten",
+        "description": "Provide an execution node with a Procedure hash and request that the mesh forget the procedure on ipfs. This is a best-effort request as verification of deletion is impossible on ipfs.",
+        "operationId": "procedure_delete",
+        "responses": {
+          "204": {
+            "description": "Successful request"
+          },
+          "default": {
+            "description": "An unexpected error has occurred"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "Procedure": {
+        "type": "object",
+        "required": [
+          "hash",
+          "metadata"
+        ],
+        "properties": {
+          "hash": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "ProcedureList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Procedure"
+        }
+      },
+      "ProcedureInput": {
+        "required": [
+          "procInputs"
+        ],
+        "properties": {
+          "procInputs": {
+            "type": "object"
+          }
+        }
+      },
+      "ProcedureOutput": {
+        "type": "object"
+      }
+    }
+  }
+}
